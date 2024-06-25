@@ -1,13 +1,4 @@
----
-title: "Project Assignment - Money in politics"
-subtitle: "Due: 21 April, 23:59 TR time"
-output: 
-  tufte::tufte_html:
-    css: ../hw.css
-    tufte_variant: "envisioned"
-    highlight: pygments
-link-citations: yes
----
+
 
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -30,26 +21,14 @@ In this assignment we will use the following packages:
 
 -   **outlier**: a collection of functions for testing potential outliers
 
-In addition to these, feel free to benefit other useful packages that we discussed lastly (including dataExplorer etc.) 
 
-- You should also load these packages in your Console, which you can do by sending the code to your Console by clicking on the **Run Current Chunk** icon (green arrow pointing right icon).
 
-Note that these packages are also get loaded in your R Markdown environment when you **Knit** your R Markdown document.
-
-## About Data set 
-
-The data come from [OpenSecrets.org](https://www.opensecrets.org), a *"website tracking the influence of money on U.S. politics, and how that money affects policy and citizens' lives"*.
-
-This website is hosted by The Center for Responsive Politics, which is a nonpartisan, independent non-profit that *"tracks money in U.S. politics and its effect on elections and public policy."*[^1]
-
-Our first goal is to merge the different data sets provided, to create a single dataset. Since that means repeating a task many times, you should write a function to create the data.
 
 ## Exercise 1
 
 Write a function using a `for` loop in R to create a single data set and call it `pac_all` containing the contributions in all election years given. In your R Markdown file, load `pac_all.csv` and report its number of observations and variables as a full sentence. Our focus is the data belonging to the years 2020, 2018 and 2016 only
 
 
-✏️️🧶 ✅ ⬆️ *Write your answer in your R Markdown document , knit the document, make sure that your added R code chunk works well and you did not face with any knitting problem*
 
 ## Data cleaning
 
@@ -113,7 +92,7 @@ cat("The number of observations in pac_all is", nrow(pac_all), "and the number o
 
 - End your code chunk by printing out the top 10 rows of your data frame (if you just type the data frame name it should automatically do this for you).
 
-✏️️🧶 ✅ ⬆️ *Write your answer in your R Markdown document , knit the document, make sure that your added R code chunk works well and you did not face with any knitting problem*
+
 
 ```{r, Exercise2}
 
@@ -143,7 +122,7 @@ Consider one of the variables in your data set (say `total` column),
 
 - Apply related tests from outlier package if you have any potential outlier observation in your data. Confirm or not the considered point is a real outlier or not by interpreting your statistical test results (ie. Dixon's test etc.)
 
-✏️️🧶 ✅ ⬆️ *Write your answer in your R Markdown document , knit the document, make sure that your added R code chunk works well and you did not face with any knitting problem*
+
 
 ```{r, Exercise3}
 
@@ -193,7 +172,7 @@ print(dixon_results)
 - Once you have made the plot, write a brief interpretation of what the graph reveals.
 
 
-✏️️🧶 ✅ ⬆️ *Write your answer in your R Markdown document , knit the document, make sure that your added R code chunk works well and you did not face with any knitting problem*
+
 
 ```{r, Exercise4}
 library(tidyverse)
