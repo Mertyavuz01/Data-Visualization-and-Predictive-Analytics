@@ -1,0 +1,198 @@
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(robotstxt)
+library(rvest)
+library(here) 
+
+knitr::opts_chunk$set(out.width = "100%", eval = TRUE)
+```
+
+In this assignment you will mainly work on data processing and data cleaning.Besides, you need to benefit from what we have covered so far regarding the missing data or potential outlier detection.
+
+## Packages
+
+In this assignment we will use the following packages:
+
+-   **tidyverse**: a collection of packages for doing data analysis in a "tidy" way
+
+-   **naniar**: about detecting missing values in different ways
+
+-   **outlier**: a collection of functions for testing potential outliers
+
+
+
+
+## Exercise 1
+
+Write a function using a `for` loop in R to create a single data set and call it `pac_all` containing the contributions in all election years given. In your R Markdown file, load `pac_all.csv` and report its number of observations and variables as a full sentence. Our focus is the data belonging to the years 2020, 2018 and 2016 only
+
+
+
+## Data cleaning
+
+In this section we clean the `pac_all` data frame to prepare it for analysis and visualization. We have two goals in data cleaning:
+
+-   Separate the `country_parent` into two such that country and parent company appear in different columns for country-level analysis.
+
+- Convert contribution amounts in `total`, `dems`, and `repubs` from character strings to numeric values.
+
+- Check each column whether you have any missing values or not (You can benefit from different packages to visualize missingness if you like)
+
+The following exercises walk you through how to make these fixes to the data.
+
+Looking at the functions separete() str_remove() and str_remove_all() are strongly recommended !! 
+
+```{r, Exercise1}
+pac_2016 <- read.csv("pac_2016.csv")  
+pac_2018 <- read.csv("pac_2018.csv")  
+pac_2020 <- read.csv("pac_2020.csv")  
+
+combine_pac_data <- function(years) {
+  pac_all <- data.frame()
+  for (year in years) {
+    pac_year <- read.csv(paste0("pac_", year, ".csv"))  
+    pac_all <- rbind(pac_all, pac_year)  
+  }
+  return(pac_all)
+}
+
+combine_pac_data_and_clean <- function(years, output_file) {
+  pac_all <- combine_pac_data(years)  
+
+pac_all<- separate(pac_all, country_parent, into = c("country", "parent"), sep = "/")
+
+  pac_all$total <- as.numeric(str_remove_all(pac_all$total, "[^0-9.]"))
+  pac_all$dems <- as.numeric(str_remove_all(pac_all$dems, "[^0-9.]"))
+  pac_all$repubs <- as.numeric(str_remove_all(pac_all$repubs, "[^0-9.]"))
+  
+  write.csv(pac_all, output_file)
+  
+  return(pac_all)
+}
+
+years <- c(2020, 2018, 2016)
+
+pac_all <- combine_pac_data_and_clean(years, "pac_all.csv")
+
+pac_all <- read.csv("pac_all.csv")
+
+cat("The number of observations in pac_all is", nrow(pac_all), "and the number of variables is", ncol(pac_all), ".\n")
+
+```
+**This R code is designed to combine and clean data from political action committees (PACs) across different years. Firstly, the `combine_pac_data()` function reads CSV files for specified years and combines them into a single dataframe. Then, the `combine_pac_data_and_clean()` function cleans the combined data, such as separating columns and converting certain columns to numeric format. It writes the cleaned data to a CSV file named "pac_all.csv" and returns this dataframe. Lastly, the resulting "pac_all.csv" file is read, and the number of observations and variables in it are printed using the `cat()` function. This code can be used to automate the process of data retrieval and cleaning from multiple CSV files.**
+
+
+## Exercise 2
+
+- Use the `separate()` function to separate `country_parent` into `country` and `parent` columns. 
+
+- Remove the character strings including `$` and `,` signs in the `total`, `dems`, and `repubs` columns and convert these columns to numeric. 
+
+- End your code chunk by printing out the top 10 rows of your data frame (if you just type the data frame name it should automatically do this for you).
+
+
+
+```{r, Exercise2}
+
+library(tidyr)
+
+pac_all <- read.csv("pac_all.csv")
+
+pac_all$total <- as.numeric(gsub("\\$|,", "", pac_all$total))
+pac_all$dems <- as.numeric(gsub("\\$|,", "", pac_all$dems))
+pac_all$repubs <- as.numeric(gsub("\\$|,", "", pac_all$repubs))
+
+head(pac_all, 10)
+
+
+```
+
+**This code snippet utilizes the `tidyr` library and begins by reading the "pac_all.csv" file into a dataframe named `pac_all`. Subsequently, it employs `gsub()` and `as.numeric()` functions to remove dollar signs and commas from the "total", "dems", and "repubs" columns, converting them into numeric format to facilitate numerical operations. Finally, it displays the first 10 rows of the `pac_all` dataframe using the `head()` function, ensuring the monetary values in these columns are appropriately formatted for subsequent analysis.** 
+
+
+## Exercise 3
+
+Consider one of the variables in your data set (say `total` column),
+
+- Create a boxplot for this numerical variable separately for each year. 
+
+- Comment on the distributional behavior of the variable, are you able to spot any potential outliers (value far away from the others in general)
+
+- Apply related tests from outlier package if you have any potential outlier observation in your data. Confirm or not the considered point is a real outlier or not by interpreting your statistical test results (ie. Dixon's test etc.)
+
+
+
+```{r, Exercise3}
+
+install.packages("outliers", repos = "[mirror_url]")
+
+library(tidyverse)
+library(outliers)
+
+pac_all <- read.csv("pac_all.csv")
+
+pac_all %>%
+  filter(year %in% c(2016, 2018, 2020)) %>%
+  ggplot(aes(x = factor(year), y = total)) +
+  geom_boxplot() +
+  labs(x = "Year", y = "Total Contributions") +
+  theme_minimal()
+
+dixon_test <- function(x) {
+  if (length(x) < 3 | length(x) > 30) {
+    return(NULL)
+  }
+  test_result <- dixon.test(x)
+  p_value <- test_result$p.value
+  critical_value <- test_result$critical.value
+  test_statistic <- test_result$statistic
+  result <- list(p_value = p_value, critical_value = critical_value, test_statistic = test_statistic)
+  return(result)
+}
+
+dixon_results <- lapply(split(pac_all$total, pac_all$year), dixon_test)
+
+print(dixon_results)
+
+
+
+```
+
+**This code snippet begins by installing and loading the "outliers" package along with other necessary libraries like `tidyverse`. It then reads the "pac_all.csv" file into a dataframe called `pac_all`. Subsequently, it filters the data for the years 2016, 2018, and 2020, creating a boxplot illustrating the distribution of total contributions across these years. Dixon's Q test for outliers is defined in a function named `dixon_test()`, which performs the test on input vectors with lengths between 3 and 30. Results, including the p-value, critical value, and test statistic, are stored in a list. Using `lapply()`, the `dixon_test()` function is applied to each subset of total contributions grouped by year, and the results are printed. This script serves the purpose of identifying potential outliers in the total contributions data for each year.** 
+
+## Data visualization and interpretation
+
+
+## Exercise 4
+
+- Create a line plot of total contributions from all foreign-connected PACs in the Canada and Mexico over the years. 
+
+- Once you have made the plot, write a brief interpretation of what the graph reveals.
+
+
+
+
+```{r, Exercise4}
+library(tidyverse)
+
+pac_all <- read.csv("pac_all.csv")
+
+can_mex_pacs <- pac_all %>%
+  filter(country %in% c("Canada", "Mexico"))
+
+total_contrib <- can_mex_pacs %>%
+  group_by(year, country) %>%
+  summarise(total = sum(total, na.rm = TRUE), .groups = "drop") %>%
+  spread(key = country, value = total) %>%
+  mutate(total_contrib = Canada + Mexico)
+
+ggplot(total_contrib, aes(x = year, y = total_contrib)) +
+  geom_line() +
+  labs(x = "Year", y = "Total Contributions", title = "Total Contributions from Foreign-Connected PACs in Canada and Mexico")
+
+
+```
+
+**This script employs the `tidyverse` package to handle data and generate visualizations. Initially, it reads data from a CSV file named "pac_all.csv" into a dataframe named `pac_all`. It then filters the dataframe to include only observations associated with Canada or Mexico. Subsequently, it calculates the total contributions from PACs in Canada and Mexico for each year, grouping the data accordingly and summing the total contributions. After reshaping the data to have separate columns for Canada and Mexico, it computes the total contributions from both countries for each year. Finally, it generates a line plot using `ggplot2`, illustrating the total contributions from foreign-connected PACs in Canada and Mexico over the years, with the x-axis denoting the year and the y-axis representing the total contributions. The plot is titled "Total Contributions from Foreign-Connected PACs in Canada and Mexico".** 
